@@ -97,7 +97,7 @@ export class SessionManagerCore extends SessionManager {
 
   private onlyDefault(name: string) {
     if (name !== this.DEFAULT) {
-      throw new OnlyDefaultSessionIsAllowed();
+      //throw new OnlyDefaultSessionIsAllowed();
     }
   }
 
@@ -244,7 +244,7 @@ export class SessionManagerCore extends SessionManager {
   }
 
   getSession(name: string): WhatsappSession {
-    this.onlyDefault(name);
+    //this.onlyDefault(name);
     const session = this.session;
     if (session === undefined) {
       throw new NotFoundException(
