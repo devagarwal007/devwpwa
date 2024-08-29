@@ -8,6 +8,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  SessionApiParam,
+  SessionParam,
+} from '@waha/nestjs/params/SessionApiParam';
 
 import { SessionManager } from '../core/abc/manager.abc';
 import { WhatsappSession } from '../core/abc/session.abc';
@@ -18,11 +22,10 @@ import {
   VideoStatus,
   VoiceStatus,
 } from '../structures/status.dto';
-import { SessionApiParam, SessionParam } from './helpers';
 
 @ApiSecurity('api_key')
 @Controller('api/:session/status')
-@ApiTags('status')
+@ApiTags('🟢 Status')
 class StatusController {
   constructor(private manager: SessionManager) {}
 

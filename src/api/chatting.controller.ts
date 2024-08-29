@@ -26,7 +26,7 @@ import { WAMessage } from '../structures/responses.dto';
 
 @ApiSecurity('api_key')
 @Controller('api')
-@ApiTags('chatting')
+@ApiTags('📤 Chatting')
 export class ChattingController {
   constructor(private manager: SessionManager) {}
 
@@ -43,16 +43,6 @@ export class ChattingController {
   sendContactVcard(@Body() request: MessageContactVcardRequest) {
     const whatsapp = this.manager.getSession(request.session);
     return whatsapp.sendContactVCard(request);
-  }
-
-  @Get('/sendText')
-  @ApiOperation({ summary: 'Send a text message', deprecated: true })
-  sendTextGet(@Query() query: MessageTextQuery) {
-    const whatsapp = this.manager.getSession(query.session);
-    const msg = new MessageTextRequest();
-    msg.chatId = query.phone;
-    msg.text = query.text;
-    return whatsapp.sendText(msg);
   }
 
   @Post('/sendText')
@@ -123,13 +113,6 @@ export class ChattingController {
     return whatsapp.sendVideo(request);
   }
 
-  @Post('/reply')
-  @ApiOperation({ summary: 'Reply to a text message' })
-  reply(@Body() request: MessageReplyRequest) {
-    const whatsapp = this.manager.getSession(request.session);
-    return whatsapp.reply(request);
-  }
-
   @Post('/sendSeen')
   sendSeen(@Body() chat: SendSeenRequest) {
     const whatsapp = this.manager.getSession(chat.session);
@@ -171,5 +154,26 @@ export class ChattingController {
   getMessages(@Query() query: GetMessageQuery) {
     const whatsapp = this.manager.getSession(query.session);
     return whatsapp.getMessages(query);
+  }
+
+  @Get('/sendText')
+  @ApiOperation({ summary: 'Send a text message', deprecated: true })
+  sendTextGet(@Query() query: MessageTextQuery) {
+    const whatsapp = this.manager.getSession(query.session);
+    const msg = new MessageTextRequest();
+    msg.chatId = query.phone;
+    msg.text = query.text;
+    return whatsapp.sendText(msg);
+  }
+
+  @Post('/reply')
+  @ApiOperation({
+    summary:
+      'DEPRECATED - you can set "reply_to" field when sending text, image, etc',
+    deprecated: true,
+  })
+  reply(@Body() request: MessageReplyRequest) {
+    const whatsapp = this.manager.getSession(request.session);
+    return whatsapp.reply(request);
   }
 }
