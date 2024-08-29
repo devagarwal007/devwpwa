@@ -1,5 +1,4 @@
 import { UnprocessableEntityException } from '@nestjs/common/exceptions/unprocessable-entity.exception';
-import { IEngineMediaProcessor } from '@waha/core/abc/media.abc';
 import {
   getChannelInviteLink,
   WAHAInternalEvent,
@@ -10,6 +9,7 @@ import {
   AvailableInPlusVersion,
   NotImplementedByEngineError,
 } from '@waha/core/exceptions';
+import { IMediaEngineProcessor } from '@waha/core/media/IMediaEngineProcessor';
 import { QR } from '@waha/core/QR';
 import { parseBool } from '@waha/helpers';
 import { CallData } from '@waha/structures/calls.dto';
@@ -53,9 +53,11 @@ import {
   SettingsSecurityChangeInfo,
 } from '@waha/structures/groups.dto';
 import { Label, LabelID } from '@waha/structures/labels.dto';
+import { ReplyToMessage } from '@waha/structures/message.dto';
 import { WAMessage, WAMessageReaction } from '@waha/structures/responses.dto';
 import { MeInfo } from '@waha/structures/sessions.dto';
 import { WAMessageRevokedBody } from '@waha/structures/webhooks.dto';
+import { waitUntil } from '@waha/utils/promiseTimeout';
 import { SingleDelayedJobRunner } from '@waha/utils/SingleDelayedJobRunner';
 import {
   Call,
@@ -154,6 +156,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
         );
         return;
       }
+      await this.end();
       await this.start();
     });
   }
@@ -176,7 +179,6 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   protected async init() {
-    await this.end();
     this.shouldRestart = true;
     this.whatsapp = await this.buildClient();
     this.whatsapp
@@ -236,8 +238,18 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     try {
       this.whatsapp?.removeAllListeners();
       this.startDelayedJob.cancel();
+      // It's possible that browser yet starting
+      await waitUntil(
+        async () => {
+          const result = !!this.whatsapp.pupBrowser;
+          this.logger.debug(`Browser is ready to be closed: ${result}`);
+          return result;
+        },
+        1_000,
+        10_000,
+      );
       this.whatsapp?.destroy().catch((error) => {
-        this.logger.debug('Failed to destroy the client', error);
+        this.logger.warn(error, 'Failed to destroy the client');
       });
     } catch (error) {
       this.logger.error(error);
@@ -374,11 +386,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   reply(request: MessageReplyRequest) {
-    const options = {
-      quotedMessageId: request.reply_to,
-      // It's fine to sent just ids instead of Contact object
-      mentions: request.mentions as unknown as string[],
-    };
+    const options = this.getMessageOptions(request);
     return this.whatsapp.sendMessage(request.chatId, request.text, options);
   }
 
@@ -410,7 +418,8 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     const location = new Location(request.latitude, request.longitude, {
       name: request.title,
     });
-    return this.whatsapp.sendMessage(request.chatId, location);
+    const options = this.getMessageOptions(request);
+    return this.whatsapp.sendMessage(request.chatId, location, options);
   }
 
   async sendSeen(request: SendSeenRequest) {
@@ -472,12 +481,12 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     const messages = await chat.fetchMessages({
       limit: limit,
     });
-    // Go over messages, download media, and convert to right format.
-    const result = [];
-    for (const message of messages) {
-      const msg = await this.processIncomingMessage(message, downloadMedia);
-      result.push(msg);
+    const promises = [];
+    for (const msg of messages) {
+      promises.push(this.processIncomingMessage(msg, downloadMedia));
     }
+    let result = await Promise.all(promises);
+    result = result.filter(Boolean);
     return result;
   }
 
@@ -935,6 +944,7 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   protected toWAMessage(message: Message): Promise<WAMessage> {
+    const replyTo = this.extractReplyTo(message);
     // @ts-ignore
     return Promise.resolve({
       id: message.id._serialized,
@@ -955,8 +965,22 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
       ackName: WAMessageAck[message.ack] || ACK_UNKNOWN,
       location: message.location,
       vCards: message.vCards,
+      replyTo: replyTo,
       _data: message.rawData,
     });
+  }
+
+  protected extractReplyTo(message: Message): ReplyToMessage | null {
+    // @ts-ignore
+    const quotedMsg = message.rawData.quotedMsg;
+    if (!quotedMsg) {
+      return;
+    }
+    return {
+      id: quotedMsg.id?.id,
+      participant: quotedMsg.author || quotedMsg.from,
+      body: quotedMsg.caption || quotedMsg.body,
+    };
   }
 
   public async getEngineInfo() {
@@ -975,11 +999,23 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
 
   protected downloadMedia(message: Message) {
     const processor = new EngineMediaProcessor();
-    return this.mediaManager.processMedia(processor, message);
+    return this.mediaManager.processMedia(processor, message, this.name);
+  }
+
+  protected getMessageOptions(request: any): any {
+    let mentions = request.mentions;
+    mentions = mentions ? mentions.map(this.ensureSuffix) : undefined;
+
+    const quotedMessageId = request.reply_to;
+
+    return {
+      mentions: mentions,
+      quotedMessageId: quotedMessageId,
+    };
   }
 }
 
-export class EngineMediaProcessor implements IEngineMediaProcessor<Message> {
+export class EngineMediaProcessor implements IMediaEngineProcessor<Message> {
   hasMedia(message: Message): boolean {
     if (!message.hasMedia) {
       return false;

@@ -11,10 +11,10 @@ import { VERSION } from '../version';
 
 @ApiSecurity('api_key')
 @Controller('api/version')
-@ApiTags('other')
+@ApiTags('🔍 Observability')
 export class VersionController {
   @Get('')
-  @ApiOperation({ summary: 'Get the version of the server' })
+  @ApiOperation({ summary: 'Get the version of the server', deprecated: true })
   get(): WAHAEnvironment {
     return VERSION;
   }

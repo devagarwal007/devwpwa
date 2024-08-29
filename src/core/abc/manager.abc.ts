@@ -1,19 +1,13 @@
-import {
-  BeforeApplicationShutdown,
-  OnApplicationShutdown,
-} from '@nestjs/common';
+import { BeforeApplicationShutdown } from '@nestjs/common';
 import { WAHAWebhook } from '@waha/structures/webhooks.dto';
 import { VERSION } from '@waha/version';
 import { EventEmitter } from 'events';
 
 import { WAHAEngine, WAHAEvents } from '../../structures/enums.dto';
 import {
-  MeInfo,
+  SessionConfig,
   SessionDTO,
   SessionInfo,
-  SessionLogoutRequest,
-  SessionStartRequest,
-  SessionStopRequest,
 } from '../../structures/sessions.dto';
 import { ISessionAuthRepository } from '../storage/ISessionAuthRepository';
 import { ISessionConfigRepository } from '../storage/ISessionConfigRepository';
@@ -37,11 +31,22 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
   //
   // API Methods
   //
-  abstract start(request: SessionStartRequest): Promise<SessionDTO>;
+  /**
+   * Either create or update
+   */
+  abstract exists(name: string): Promise<boolean>;
 
-  abstract stop(request: SessionStopRequest): Promise<void>;
+  abstract isRunning(name: string): boolean;
 
-  abstract logout(request: SessionLogoutRequest): Promise<void>;
+  abstract upsert(name: string, config?: SessionConfig): Promise<void>;
+
+  abstract delete(name: string): Promise<void>;
+
+  abstract start(name: string): Promise<SessionDTO>;
+
+  abstract stop(name: string, silent: boolean): Promise<void>;
+
+  abstract logout(name: string): Promise<void>;
 
   abstract getSession(name: string): WhatsappSession;
 
@@ -55,6 +60,7 @@ export abstract class SessionManager implements BeforeApplicationShutdown {
       const data: WAHAWebhook = {
         event: event,
         session: session.name,
+        metadata: session.sessionConfig?.metadata,
         me: me,
         payload: payload,
         engine: session.engine,

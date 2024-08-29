@@ -15,7 +15,7 @@ import {
   VoiceBinaryFile,
   VoiceRemoteFile,
 } from './files.dto';
-import { ChatIdProperty } from './properties.dto';
+import { ChatIdProperty, ReplyToProperty } from './properties.dto';
 
 /**
  * Queries
@@ -72,6 +72,7 @@ export class SendSeenRequest extends ChatRequest {
   @ApiProperty({
     example: '11111111111@c.us',
     required: false,
+    default: null,
     description:
       'NOWEB engine only - the ID of the user that sent the  message (undefined for individual chats)',
   })
@@ -144,6 +145,9 @@ export class MessageTextRequest extends ChatRequest {
   text = 'Hi there!';
   @ApiHideProperty()
   mentions?: string[];
+
+  @ReplyToProperty()
+  reply_to?: string;
 }
 
 export class EditMessageRequest {
@@ -155,16 +159,26 @@ export class EditMessageRequest {
 
 export class MessageReplyRequest extends MessageTextRequest {
   text = 'Reply text';
-  @ApiProperty({
-    example: 'false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA',
-  })
-  reply_to: string;
 }
 
 export class MessageLocationRequest extends ChatRequest {
+  @ApiProperty({
+    example: 38.8937255,
+  })
   latitude: number;
+
+  @ApiProperty({
+    example: -77.0969763,
+  })
   longitude: number;
+
+  @ApiProperty({
+    example: 'Our office',
+  })
   title: string;
+
+  @ReplyToProperty()
+  reply_to?: string;
 }
 
 @ApiExtraModels(BinaryFile, RemoteFile)
@@ -180,10 +194,16 @@ export class FileRequest extends ChatRequest {
 
 export class MessageImageRequest extends FileRequest {
   caption: string;
+
+  @ReplyToProperty()
+  reply_to?: string;
 }
 
 export class MessageFileRequest extends FileRequest {
   caption: string;
+
+  @ReplyToProperty()
+  reply_to?: string;
 }
 
 @ApiExtraModels(VoiceBinaryFile, VoiceRemoteFile)
@@ -195,6 +215,9 @@ export class MessageVoiceRequest extends ChatRequest {
     ],
   })
   file: VoiceBinaryFile | VoiceRemoteFile;
+
+  @ReplyToProperty()
+  reply_to?: string;
 }
 
 @ApiExtraModels(VideoRemoteFile, VideoBinaryFile)
@@ -208,6 +231,13 @@ export class MessageVideoRequest extends ChatRequest {
   file: VideoRemoteFile | VideoBinaryFile;
 
   caption: string = 'Just watch at this!';
+
+  @ApiProperty({
+    description:
+      'The ID of the message to reply to - false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA',
+    example: null,
+  })
+  reply_to?: string;
 }
 
 export class MessageLinkPreviewRequest extends ChatRequest {
@@ -256,6 +286,13 @@ export class MessagePoll {
 
 export class MessagePollRequest extends ChatRequest {
   poll: MessagePoll;
+
+  @ApiProperty({
+    description:
+      'The ID of the message to reply to - false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA',
+    example: null,
+  })
+  reply_to?: string;
 }
 
 export class MessageDestination {

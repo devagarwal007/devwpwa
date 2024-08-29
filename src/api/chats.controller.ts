@@ -11,22 +11,22 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ChatIdApiParam } from '@waha/nestjs/params/ChatIdApiParam';
+import { MessageIdApiParam } from '@waha/nestjs/params/MessageIdApiParam';
+import {
+  SessionApiParam,
+  SessionParam,
+} from '@waha/nestjs/params/SessionApiParam';
 
 import { SessionManager } from '../core/abc/manager.abc';
 import { WhatsappSession } from '../core/abc/session.abc';
 import { parseBool } from '../helpers';
 import { GetChatMessagesQuery, GetChatsQuery } from '../structures/chats.dto';
 import { EditMessageRequest } from '../structures/chatting.dto';
-import {
-  ChatIdApiParam,
-  MessageIdApiParam,
-  SessionApiParam,
-  SessionParam,
-} from './helpers';
 
 @ApiSecurity('api_key')
 @Controller('api/:session/chats')
-@ApiTags('chats')
+@ApiTags('💬 Chats')
 @UsePipes(new ValidationPipe({ transform: true }))
 class ChatsController {
   constructor(private manager: SessionManager) {}
