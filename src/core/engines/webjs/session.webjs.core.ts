@@ -42,6 +42,7 @@ import {
   MessageVoiceRequest,
   SendSeenRequest,
   WANumberExistResult,
+  FileRequest,
 } from '@waha/structures/chatting.dto';
 import { ContactQuery, ContactRequest } from '@waha/structures/contacts.dto';
 import {
@@ -90,6 +91,7 @@ import {
   Message,
   MessageMedia,
   Reaction,
+  MessageMedia,
   WAState,
 } from 'whatsapp-web.js';
 import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
@@ -452,7 +454,11 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
   }
 
   sendText(request: MessageTextRequest) {
-    const options = this.getMessageOptions(request);
+    const options = {
+      // It's fine to sent just ids instead of Contact object
+      mentions: request.mentions as unknown as string[],
+     linkPreview: false,
+    };
     return this.whatsapp.sendMessage(
       this.ensureSuffix(request.chatId),
       request.text,
@@ -483,8 +489,20 @@ export class WhatsappSessionWebJSCore extends WhatsappSession {
     return this.whatsapp.sendMessage(request.chatId, request.text, options);
   }
 
-  sendImage(request: MessageImageRequest) {
-    throw new AvailableInPlusVersion();
+  async sendImage(request: MessageImageRequest) {
+    const chatId = this.ensureSuffix(request.chatId);
+
+    const media = await MessageMedia.fromUrl(request.file.url, {
+        filename: request.file.filename,
+        //mimetype: request.file.mimetype,
+    });
+
+    const options = {
+        caption: request.caption,
+        //mentions: request.mentions as unknown as string[],
+    };
+
+    return this.whatsapp.sendMessage(chatId, media, options);
   }
 
   sendFile(request: MessageFileRequest) {
