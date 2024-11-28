@@ -91,7 +91,6 @@ import {
   Message,
   MessageMedia,
   Reaction,
-  MessageMedia,
   WAState,
 } from 'whatsapp-web.js';
 import { Message as MessageInstance } from 'whatsapp-web.js/src/structures';
