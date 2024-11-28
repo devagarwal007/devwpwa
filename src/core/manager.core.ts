@@ -3,6 +3,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
 import { WebhookConductor } from '@waha/core/integrations/webhooks/WebhookConductor';
 import { MediaStorageFactory } from '@waha/core/media/MediaStorageFactory';
 import { DefaultMap } from '@waha/utils/DefaultMap';
@@ -69,6 +70,7 @@ export class SessionManagerCore extends SessionManager {
   constructor(
     config: WhatsappConfigService,
     private engineConfigService: EngineConfigService,
+    private webjsEngineConfigService: WebJSEngineConfigService,
     log: PinoLogger,
     private mediaStorageFactory: MediaStorageFactory,
   ) {
@@ -175,6 +177,9 @@ export class SessionManagerCore extends SessionManager {
       proxyConfig: proxyConfig,
       sessionConfig: this.sessionConfig,
     };
+    if (this.EngineClass === WhatsappSessionWebJSCore) {
+      sessionConfig.engineConfig = this.webjsEngineConfigService.getConfig();
+    }
     await this.sessionAuthRepository.init(name);
     // @ts-ignore
     const session = new this.EngineClass(sessionConfig);
