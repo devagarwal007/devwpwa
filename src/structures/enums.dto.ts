@@ -6,6 +6,7 @@ export enum WAHAEvents {
   MESSAGE_REACTION = 'message.reaction',
   MESSAGE_ANY = 'message.any',
   MESSAGE_ACK = 'message.ack',
+  MESSAGE_WAITING = 'message.waiting',
   MESSAGE_REVOKED = 'message.revoked',
   STATE_CHANGE = 'state.change',
   GROUP_JOIN = 'group.join',
@@ -21,7 +22,13 @@ export enum WAHAEvents {
   LABEL_DELETED = 'label.deleted',
   LABEL_CHAT_ADDED = 'label.chat.added',
   LABEL_CHAT_DELETED = 'label.chat.deleted',
+  ENGINE_EVENT = 'engine.event',
 }
+
+// All but no state.change, it's internal one
+export const WAHAEventsWild = Object.values(WAHAEvents).filter(
+  (e) => e !== WAHAEvents.STATE_CHANGE && e !== WAHAEvents.ENGINE_EVENT,
+);
 
 export enum WAHASessionStatus {
   STOPPED = 'STOPPED',
@@ -32,7 +39,6 @@ export enum WAHASessionStatus {
 }
 
 export enum WAHAEngine {
-  VENOM = 'VENOM',
   WEBJS = 'WEBJS',
   NOWEB = 'NOWEB',
 }
@@ -53,4 +59,5 @@ export enum WAMessageAck {
   READ = 3,
   PLAYED = 4,
 }
+
 export const ACK_UNKNOWN = 'UNKNOWN';

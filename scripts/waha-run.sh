@@ -11,10 +11,9 @@ docker run -d \
     --env WHATSAPP_API_KEY=321 \
     --env WAHA_DASHBOARD_USERNAME=waha \
     --env WAHA_DASHBOARD_PASSWORD=waha \
-    --env WAHA_LOG_FORMAT=PRETTY \
+    --env WAHA_LOG_FORMAT=JSON \
     --env WAHA_LOG_LEVEL=info \
     --env WHATSAPP_DEFAULT_ENGINE=WEBJS \
-    --env WHATSAPP_RESTART_ALL_SESSIONS=True \
     --env WAHA_PRINT_QR=False \
     --env WHATSAPP_FILES_LIFETIME=0 \
     --env WHATSAPP_FILES_FOLDER=/app/.media \

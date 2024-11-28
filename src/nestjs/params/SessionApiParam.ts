@@ -1,6 +1,10 @@
 import { Param } from '@nestjs/common';
 import { ApiParam } from '@nestjs/swagger';
-import { SessionPipe } from '@waha/nestjs/pipes/SessionPipe';
+import {
+  QRCodeSessionPipe,
+  SessionPipe,
+  WorkingSessionPipe,
+} from '@waha/nestjs/pipes/SessionPipe';
 
 /**
  * Decorator for a method that uses SessionPipe above
@@ -12,9 +16,13 @@ export const SessionApiParam = ApiParam({
   schema: {
     default: 'default',
   },
-  description: 'Session <code>name</code>',
+  description: 'Session name',
 });
 /**
  * Session param
  */
 export const SessionParam = Param('session', SessionPipe);
+
+export const WorkingSessionParam = Param('session', WorkingSessionPipe);
+
+export const QRCodeSessionParam = Param('session', QRCodeSessionPipe);

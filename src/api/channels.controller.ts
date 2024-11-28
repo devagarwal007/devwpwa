@@ -10,7 +10,7 @@ import {
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
   SessionApiParam,
-  SessionParam,
+  WorkingSessionParam,
 } from '@waha/nestjs/params/SessionApiParam';
 import {
   Channel,
@@ -33,7 +33,7 @@ export class ChannelsController {
   @SessionApiParam
   @ApiOperation({ summary: 'Get list of know channels' })
   async list(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Query() query: ListChannelsQuery,
   ): Promise<Channel[]> {
     return session.channelsList(query);
@@ -43,7 +43,7 @@ export class ChannelsController {
   @SessionApiParam
   @ApiOperation({ summary: 'Create a new channel.' })
   create(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Body() request: CreateChannelRequest,
   ): Promise<Channel> {
     return session.channelsCreateChannel(request);
@@ -53,7 +53,10 @@ export class ChannelsController {
   @SessionApiParam
   @NewsletterIdApiParam
   @ApiOperation({ summary: 'Delete the channel.' })
-  delete(@SessionParam session: WhatsappSession, @Param('id') id: string) {
+  delete(
+    @WorkingSessionParam session: WhatsappSession,
+    @Param('id') id: string,
+  ) {
     return session.channelsDeleteChannel(id);
   }
 
@@ -61,10 +64,13 @@ export class ChannelsController {
   @SessionApiParam
   @NewsletterIdOrInviteCodeApiParam
   @ApiOperation({
-    summary: 'Get the channel info - either by id @newsletter OR invite code.',
+    summary: 'Get the channel info',
+    description:
+      'You can use either id (123@newsletter) ' +
+      'OR invite code (https://www.whatsapp.com/channel/123)',
   })
   get(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Param('id') id: string,
   ): Promise<Channel> {
     if (isNewsletter(id)) {
@@ -76,45 +82,45 @@ export class ChannelsController {
     }
   }
 
-  @Post('follow')
+  @Post(':id/follow')
   @SessionApiParam
   @NewsletterIdApiParam
   @ApiOperation({ summary: 'Follow the channel.' })
   follow(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Param('id') id: string,
   ): Promise<void> {
     return session.channelsFollowChannel(id);
   }
 
-  @Post('unfollow')
+  @Post(':id/unfollow')
   @SessionApiParam
   @NewsletterIdApiParam
   @ApiOperation({ summary: 'Unfollow the channel.' })
   unfollow(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Param('id') id: string,
   ): Promise<void> {
     return session.channelsUnfollowChannel(id);
   }
 
-  @Post('mute')
+  @Post(':id/mute')
   @SessionApiParam
   @NewsletterIdApiParam
   @ApiOperation({ summary: 'Mute the channel.' })
   mute(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Param('id') id: string,
   ): Promise<void> {
     return session.channelsMuteChannel(id);
   }
 
-  @Post('unmute')
+  @Post(':id/unmute')
   @SessionApiParam
   @NewsletterIdApiParam
   @ApiOperation({ summary: 'Unmute the channel.' })
   unmute(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Param('id') id: string,
   ): Promise<void> {
     return session.channelsUnmuteChannel(id);

@@ -23,7 +23,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@adiwajshing/baileys": "github:devlikeapro/Baileys#fork-master-channels-2",
+    "@adiwajshing/baileys": "github:devlikeapro/Baileys#fork-master-channels-678",
     "@adiwajshing/keyed-db": "^0.2.4",
     "@aws-sdk/client-s3": "^3.633.0",
     "@aws-sdk/s3-request-presigner": "^3.633.0",
@@ -42,8 +42,11 @@
     "@types/lodash": "^4.14.194",
     "@types/ws": "^8.5.4",
     "adm-zip": "0.5.10",
+    "agentkeepalive": "^4.5.0",
     "async-lock": "^1.4.1",
-    "better-sqlite3": "9.6.0",
+    "axios": "^1.7.7",
+    "axios-retry": "^4.5.0",
+    "better-sqlite3": "11.3.0",
     "check-disk-space": "^3.4.0",
     "chokidar": "^3.6.0",
     "class-transformer": "^0.5.1",
@@ -59,7 +62,7 @@
     "link-preview-js": "^3.0.4",
     "lodash": "^4.17.21",
     "mime-types": "^2.1.27",
-    "mongodb": "^6.3.0",
+    "mongodb": "6.9.0",
     "nestjs-pino": "^4.1.0",
     "passport": "^0.6.0",
     "passport-headerapikey": "^1.2.2",
@@ -67,18 +70,25 @@
     "pino-pretty": "^11.2.1",
     "pretty-bytes": "5.6.0",
     "promise-retry": "^2.0.1",
-    "puppeteer": "^21.0.0",
+    "puppeteer": "^23.6.0",
     "qrcode": "^1.5.1",
     "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.1.13",
-    "request": "^2.88.2",
-    "requestretry": "^4.1.1",
     "rimraf": "^3.0.2",
-    "rxjs": "^7.1.0",
+    "rxjs": "^7.8.1",
     "sharp": "^0.33.4",
     "swagger-ui-express": "^4.1.4",
-    "venom-bot": "5.0.1",
-    "whatsapp-web.js": "github:devlikeapro/whatsapp-web.js#fork-webpack-exodus-channels"
+    "ulid": "^2.3.0",
+    "whatsapp-web.js": "github:devlikeapro/whatsapp-web.js#fork-main-channels"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8"
+  },
+  "resolutions": {
+    "bufferutil": "^4.0.8",
+    "ws": "^8.18.0",
+    "puppeteer": "^23.6.0",
+    "whatwg-url": "13.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

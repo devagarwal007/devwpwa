@@ -22,8 +22,12 @@ export class SingleDelayedJobRunner {
     });
   }
 
+  get scheduled(): boolean {
+    return !!this.timeout;
+  }
+
   schedule(fn: FunctionNoArgs): boolean {
-    if (this.timeout) {
+    if (this.scheduled) {
       const msg = `Job has been started before, do not schedule it again`;
       this.log(this.warningOverride, msg);
       return false;
@@ -31,17 +35,26 @@ export class SingleDelayedJobRunner {
 
     this.timeout = setTimeout(() => {
       this.logger.debug(`Running job...`);
-      fn().finally(() => {
-        this.logger.debug(`Job finished`);
-        this.timeout = null;
-      });
+      fn()
+        .catch((error) => {
+          this.logger.error(`Job failed: ${error}`);
+          this.logger.error(error.stack);
+        })
+        .finally(() => {
+          this.timeout = null;
+          this.logger.debug(`Job finished`);
+        });
     }, this.timeoutMs);
     this.logger.info(`Job scheduled with timeout ${this.timeoutMs} ms`);
     return true;
   }
 
   cancel() {
+    if (!this.timeout) {
+      return;
+    }
     clearTimeout(this.timeout);
+    this.timeout = null;
     this.logger.info(`Job cancelled`);
   }
 

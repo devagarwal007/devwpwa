@@ -1,23 +1,28 @@
 import * as process from 'node:process';
+import * as v8 from 'node:v8';
 
 import {
   Body,
   Controller,
   Get,
   Logger,
+  NotFoundException,
   Post,
   Query,
+  StreamableFile,
   UsePipes,
 } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { getApp } from '@waha/main';
+import { WhatsappConfigService } from '@waha/config.service';
 import { WAHAValidationPipe } from '@waha/nestjs/pipes/WAHAValidationPipe';
 import { WAHAEnvironment } from '@waha/structures/environment.dto';
 import {
   EnvironmentQuery,
   ServerStatusResponse,
   StopRequest,
+  StopResponse,
 } from '@waha/structures/server.dto';
+import { sleep } from '@waha/utils/promiseTimeout';
 import { VERSION } from '@waha/version';
 import * as lodash from 'lodash';
 
@@ -27,7 +32,7 @@ import * as lodash from 'lodash';
 export class ServerController {
   private logger: Logger;
 
-  constructor() {
+  constructor(private config: WhatsappConfigService) {
     this.logger = new Logger('ServerController');
   }
 
@@ -38,7 +43,7 @@ export class ServerController {
   }
 
   @Get('environment')
-  @ApiOperation({ summary: 'Return the server environment' })
+  @ApiOperation({ summary: 'Get the server environment' })
   environment(
     @Query(new WAHAValidationPipe()) query: EnvironmentQuery,
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -64,7 +69,7 @@ export class ServerController {
   }
 
   @Get('status')
-  @ApiOperation({ summary: 'The server status' })
+  @ApiOperation({ summary: 'Get the server status' })
   async status(): Promise<ServerStatusResponse> {
     const now = Date.now();
     const uptime = Math.floor(process.uptime() * 1000);
@@ -72,6 +77,9 @@ export class ServerController {
     return {
       startTimestamp: startTimestamp,
       uptime: uptime,
+      worker: {
+        id: this.config.workerId,
+      },
     };
   }
 
@@ -83,25 +91,55 @@ export class ServerController {
       'so you can use this endpoint to restart the server',
   })
   @UsePipes(new WAHAValidationPipe())
-  async stop(@Body() request: StopRequest) {
+  async stop(@Body() request: StopRequest): Promise<StopResponse> {
     const timeout = 1_000;
     if (request.force) {
       this.logger.log(`Force stopping the server in ${timeout}ms`);
       setTimeout(() => {
         this.logger.log('Force stopping the server');
         process.kill(process.pid, 'SIGKILL');
+        process.exit(0);
       }, timeout);
     } else {
       this.logger.log(`Gracefully stopping the server in ${timeout}ms`);
       setTimeout(async () => {
         this.logger.log('Gracefully closing the application...');
-        const app = getApp();
-        if (app) {
-          await app.close();
-        }
-        this.logger.log('Application closed');
+        process.kill(process.pid, 'SIGTERM');
+        await sleep(10_000);
         process.exit(0);
       }, timeout);
     }
+    return { stopping: true };
+  }
+}
+
+@ApiSecurity('api_key')
+@Controller('api/server/debug')
+@ApiTags('🔍 Observability')
+export class ServerDebugController {
+  private logger: Logger;
+  private readonly enabled: boolean;
+
+  constructor(protected config: WhatsappConfigService) {
+    this.logger = new Logger('ServerDebugController');
+    this.enabled = this.config.debugModeEnabled;
+  }
+
+  @Get('heapsnapshot')
+  @ApiOperation({
+    summary: 'Return a heapsnapshot',
+    description: "Return a heapsnapshot of the server's memory",
+  })
+  async heapsnapshot() {
+    if (!this.enabled) {
+      throw new NotFoundException('WAHA_DEBUG_MODE is disabled');
+    }
+    this.logger.log('Creating a heap snapshot...');
+    const heap = v8.getHeapSnapshot();
+    const fileName = `${Date.now()}.heapsnapshot`;
+    return new StreamableFile(heap, {
+      type: 'application/octet-stream',
+      disposition: `attachment; filename=${fileName}`,
+    });
   }
 }

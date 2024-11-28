@@ -5,8 +5,13 @@ import { PassportModule } from '@nestjs/passport';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TerminusModule } from '@nestjs/terminus';
 import { ChannelsController } from '@waha/api/channels.controller';
-import { ServerController } from '@waha/api/server.controller';
+import {
+  ServerController,
+  ServerDebugController,
+} from '@waha/api/server.controller';
 import { WebsocketGatewayCore } from '@waha/core/api/websocket.gateway.core';
+import { WebJSEngineConfigService } from '@waha/core/config/WebJSEngineConfigService';
+import { MediaLocalStorageModule } from '@waha/core/media/local/media.local.storage.module';
 import { MediaLocalStorageConfig } from '@waha/core/media/local/MediaLocalStorageConfig';
 import { BufferJsonReplacerInterceptor } from '@waha/nestjs/BufferJsonReplacerInterceptor';
 import {
@@ -41,7 +46,7 @@ import { SwaggerConfigServiceCore } from './config/SwaggerConfigServiceCore';
 import { WAHAHealthCheckServiceCore } from './health/WAHAHealthCheckServiceCore';
 import { SessionManagerCore } from './manager.core';
 
-export const IMPORTS = [
+export const IMPORTS_CORE = [
   LoggerModule.forRoot({
     renameContext: 'name',
     pinoHttp: {
@@ -97,6 +102,18 @@ export const IMPORTS = [
   PassportModule,
   TerminusModule,
 ];
+
+const IMPORTS_MEDIA = [
+  ConfigModule.forRoot({
+    validationSchema: Joi.object({
+      WAHA_MEDIA_STORAGE: Joi.string().valid('LOCAL', 'S3').default('LOCAL'),
+    }),
+  }),
+  MediaLocalStorageModule,
+];
+
+const IMPORTS = [...IMPORTS_CORE, ...IMPORTS_MEDIA];
+
 export const CONTROLLERS = [
   AuthController,
   SessionsController,
@@ -112,6 +129,7 @@ export const CONTROLLERS = [
   PingController,
   HealthController,
   ServerController,
+  ServerDebugController,
   VersionController,
 ];
 const PROVIDERS = [
@@ -129,6 +147,7 @@ const PROVIDERS = [
   },
   DashboardConfigServiceCore,
   SwaggerConfigServiceCore,
+  WebJSEngineConfigService,
   WhatsappConfigService,
   EngineConfigService,
   WebsocketGatewayCore,

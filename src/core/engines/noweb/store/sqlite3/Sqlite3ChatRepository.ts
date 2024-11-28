@@ -1,23 +1,24 @@
 import { Chat } from '@adiwajshing/baileys';
+import { PaginationParams } from '@waha/structures/pagination.dto';
+import { KnexPaginator } from '@waha/utils/Paginator';
 
 import { IChatRepository } from '../IChatRepository';
-import { Sqlite3KVRepository } from './Sqlite3KVRepository';
+import { NOWEBSqlite3KVRepository } from './NOWEBSqlite3KVRepository';
+
+class ChatPaginator extends KnexPaginator {
+  indexes = ['id', 'conversationTimestamp'];
+}
 
 export class Sqlite3ChatRepository
-  extends Sqlite3KVRepository<Chat>
+  extends NOWEBSqlite3KVRepository<Chat>
   implements IChatRepository
 {
-  async getAllWithMessages(limit?: number, offset?: number): Promise<Chat[]> {
+  protected Paginator = ChatPaginator;
+
+  async getAllWithMessages(pagination: PaginationParams): Promise<Chat[]> {
     // Get chats with conversationTimestamp is not Null
-    let query = this.select()
-      .whereNotNull('conversationTimestamp')
-      .orderBy('conversationTimestamp', 'desc');
-    if (limit != null) {
-      query = query.limit(limit);
-    }
-    if (offset != null) {
-      query = query.offset(offset);
-    }
+    let query = this.select().whereNotNull('conversationTimestamp');
+    query = this.pagination(query, pagination);
     return await this.all(query);
   }
 }

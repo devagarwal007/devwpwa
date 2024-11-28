@@ -1,6 +1,8 @@
 import { Chat, Contact, makeInMemoryStore, proto } from '@adiwajshing/baileys';
 import { Label } from '@adiwajshing/baileys/lib/Types/Label';
 import { BadRequestException } from '@nestjs/common';
+import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
+import { PaginationParams } from '@waha/structures/pagination.dto';
 
 import { INowebStore } from './INowebStore';
 
@@ -37,15 +39,23 @@ export class NowebInMemoryStore implements INowebStore {
     return this.store.loadMessage(jid, id);
   }
 
-  getMessagesByJid(chatId: string, limit: number): Promise<any> {
+  getMessagesByJid(
+    chatId: string,
+    filter: GetChatMessagesFilter,
+    pagination: PaginationParams,
+  ): Promise<any> {
     throw new BadRequestException(this.errorMessage);
   }
 
-  getChats(limit?: number, offset?: number): Promise<Chat[]> {
+  getMessageById(chatId: string, messageId: string): Promise<any> {
     throw new BadRequestException(this.errorMessage);
   }
 
-  getContacts(): Promise<Contact[]> {
+  getChats(pagination: PaginationParams): Promise<Chat[]> {
+    throw new BadRequestException(this.errorMessage);
+  }
+
+  getContacts(pagination: PaginationParams): Promise<Contact[]> {
     throw new BadRequestException(this.errorMessage);
   }
 

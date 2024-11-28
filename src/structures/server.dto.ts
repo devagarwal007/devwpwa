@@ -28,6 +28,22 @@ export class StopRequest {
   force: boolean = false;
 }
 
+export class StopResponse {
+  @ApiProperty({
+    example: true,
+    description: "Always 'true' if the server is stopping.",
+  })
+  stopping: boolean = true;
+}
+
+export class WorkerInfo {
+  @ApiProperty({
+    example: 'waha',
+    description: 'The worker ID.',
+  })
+  id: string;
+}
+
 export class ServerStatusResponse {
   @ApiProperty({
     example: 1723788847247,
@@ -40,4 +56,6 @@ export class ServerStatusResponse {
     description: 'The uptime of the server in milliseconds.',
   })
   uptime: number;
+
+  worker: WorkerInfo;
 }

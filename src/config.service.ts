@@ -18,7 +18,41 @@ export class WhatsappConfigService {
   }
 
   get port(): string {
+    if (this.configService.get('PORT')) {
+      return this.configService.get('PORT');
+    }
     return this.configService.get('WHATSAPP_API_PORT', '3000');
+  }
+
+  get baseUrl(): string {
+    let baseUrl = this.configService.get('WAHA_BASE_URL', '');
+    if (!baseUrl) {
+      // combine schema+hostname+port
+      baseUrl = `${this.schema}://${this.hostname}:${this.port}`;
+    }
+    // remove / at the end
+    return baseUrl.replace(/\/$/, '');
+  }
+
+  get workerId(): string {
+    return this.configService.get('WAHA_WORKER_ID', '');
+  }
+
+  get shouldRestartWorkerSessions(): boolean {
+    const value = this.configService.get(
+      'WAHA_WORKER_RESTART_SESSIONS',
+      'true',
+    );
+    return parseBool(value);
+  }
+
+  get autoStartDelaySeconds(): number {
+    const value = this.configService.get('WAHA_AUTO_START_DELAY_SECONDS', '0');
+    try {
+      return parseInt(value, 10);
+    } catch (error) {
+      return 0;
+    }
   }
 
   get mimetypes(): string[] {
@@ -135,5 +169,10 @@ export class WhatsappConfigService {
       'WHATSAPP_HEALTH_MONGO_TIMEOUT_MS',
       3000,
     );
+  }
+
+  get debugModeEnabled(): boolean {
+    const value = this.configService.get('WAHA_DEBUG_MODE', 'false');
+    return parseBool(value);
   }
 }

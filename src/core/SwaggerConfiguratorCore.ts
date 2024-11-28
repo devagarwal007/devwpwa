@@ -20,7 +20,8 @@ export class SwaggerConfiguratorCore {
 
   get description() {
     return (
-      'WhatsApp HTTP API that you can run in a click!<br/>' +
+      '<b>WhatsApp HTTP API</b> that you can run in a click!<br/>' +
+      '<a href="/dashboard"><b>📊 Dashboard</b></a><br/>' +
       '<br/>' +
       'Learn more:' +
       '<ul>' +
@@ -29,8 +30,6 @@ export class SwaggerConfiguratorCore {
       '<li><a href="https://github.com/devlikeapro/waha" target="_blank">GitHub - WAHA Core</a></li>' +
       '<li><a href="https://github.com/devlikeapro/waha-plu' + // Separate line to pass pre-commit check
       's" target="_blank">GitHub - WAHA Plus</a></li>' +
-      '<li><a href="/dashboard">WAHA Dashboard</a></li>' +
-      '<li><a href="https://waha.devlike.pro/docs/how-to/waha-dashboard">WAHA Dashboard Documentation</a></li>' +
       '</ul>' +
       '<p>Support the project and get WAHA Plus version!</p>' +
       '<ul>' +

@@ -1,16 +1,8 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
   SessionApiParam,
-  SessionParam,
+  WorkingSessionParam,
 } from '@waha/nestjs/params/SessionApiParam';
 
 import { SessionManager } from '../core/abc/manager.abc';
@@ -31,9 +23,9 @@ class StatusController {
 
   @Post('text')
   @SessionApiParam
-  @ApiOperation({ summary: 'Send text status.' })
+  @ApiOperation({ summary: 'Send text status' })
   sendTextStatus(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Body() status: TextStatus,
   ) {
     return session.sendTextStatus(status);
@@ -41,9 +33,9 @@ class StatusController {
 
   @Post('image')
   @SessionApiParam
-  @ApiOperation({ summary: 'Send image status.' })
+  @ApiOperation({ summary: 'Send image status' })
   sendImageStatus(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Body() status: ImageStatus,
   ) {
     return session.sendImageStatus(status);
@@ -51,9 +43,9 @@ class StatusController {
 
   @Post('voice')
   @SessionApiParam
-  @ApiOperation({ summary: 'Send voice status.' })
+  @ApiOperation({ summary: 'Send voice status' })
   sendVoiceStatus(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Body() status: VoiceStatus,
   ) {
     return session.sendVoiceStatus(status);
@@ -61,9 +53,9 @@ class StatusController {
 
   @Post('video')
   @SessionApiParam
-  @ApiOperation({ summary: 'Send video status.' })
+  @ApiOperation({ summary: 'Send video status' })
   sendVideoStatus(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Body() status: VideoStatus,
   ) {
     return session.sendVideoStatus(status);
@@ -71,9 +63,9 @@ class StatusController {
 
   @Post('delete')
   @SessionApiParam
-  @ApiOperation({ summary: 'DELETE sent status.' })
+  @ApiOperation({ summary: 'DELETE sent status' })
   deleteStatus(
-    @SessionParam session: WhatsappSession,
+    @WorkingSessionParam session: WhatsappSession,
     @Body() status: DeleteStatusRequest,
   ) {
     return session.deleteStatus(status);

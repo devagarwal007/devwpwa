@@ -40,17 +40,26 @@ export class SinglePeriodicJobRunner {
 
       this.isWorking = true;
       this.logger.debug('Running job...');
-      fn().finally(() => {
-        this.isWorking = false;
-        this.logger.debug(`Job finished`);
-      });
+      fn()
+        .catch((error) => {
+          this.logger.error(`Job failed: ${error}`);
+          this.logger.error(error.stack);
+        })
+        .finally(() => {
+          this.isWorking = false;
+          this.logger.debug(`Job finished`);
+        });
     }, this.intervalMs);
     this.logger.info(`Job started with interval ${this.intervalMs} ms`);
     return true;
   }
 
   stop() {
+    if (!this.interval) {
+      return;
+    }
     clearInterval(this.interval);
+    this.interval = null;
     this.logger.info(`Job stopped`);
   }
 

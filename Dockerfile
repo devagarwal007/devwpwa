@@ -1,14 +1,16 @@
 #
 # Build
 #
-ARG NODE_VERSION=20.12.2-bullseye
-FROM node:${NODE_VERSION} as build
+ARG NODE_VERSION=22.8-bullseye
+FROM node:${NODE_VERSION} AS build
 ENV PUPPETEER_SKIP_DOWNLOAD=True
 
 # npm packages
 WORKDIR /src
 COPY package.json .
-#COPY yarn.lock .
+COPY yarn.lock .
+ENV YARN_CHECKSUM_BEHAVIOR=update
+RUN npm install -g corepack && corepack enable
 RUN yarn set version 3.6.3
 RUN yarn install
 
@@ -21,10 +23,10 @@ RUN yarn build && find ./dist -name "*.d.ts" -delete
 #
 # Dashboard
 #
-FROM node:${NODE_VERSION} as dashboard
+FROM node:${NODE_VERSION} AS dashboard
 
 # Download WAHA Dashboard
-ENV WAHA_DASHBOARD_SHA c1a91f879a35f0ae32d46ddb2e061ac1819a3d4f
+ENV WAHA_DASHBOARD_SHA 45db5b46a944f4320136f2409d8b970483c8bd9d
 RUN \
     wget https://github.com/devlikeapro/dashboard/archive/${WAHA_DASHBOARD_SHA}.zip \
     && unzip ${WAHA_DASHBOARD_SHA}.zip -d /tmp/dashboard \
@@ -36,7 +38,7 @@ RUN \
 #
 # Final
 #
-FROM node:${NODE_VERSION} as release
+FROM node:${NODE_VERSION} AS release
 ENV PUPPETEER_SKIP_DOWNLOAD=True
 # Quick fix for memory potential memory leaks
 # https://github.com/devlikeapro/waha/issues/347
@@ -48,13 +50,30 @@ RUN echo "USE_BROWSER=$USE_BROWSER"
 # Install ffmpeg to generate previews for videos
 RUN apt-get update && apt-get install -y ffmpeg --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-# Install zip and unzip
-RUN apt-get update && apt-get install -y zip unzip --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# Install zip and unzip - either for chromium or chrome
+RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
+    apt-get update  \
+    && apt-get install -y zip unzip \
+    && rm -rf /var/lib/apt/lists/*; \
+    fi
 
 # Install fonts if using either chromium or chrome
 RUN if [ "$USE_BROWSER" = "chromium" ] || [ "$USE_BROWSER" = "chrome" ]; then \
     apt-get update  \
-    && apt-get install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
+    && apt-get install -y \
+        fontconfig \
+        fonts-freefont-ttf \
+        fonts-gfs-neohellenic \
+        fonts-indic \
+        fonts-ipafont-gothic \
+        fonts-kacst \
+        fonts-liberation \
+        fonts-noto-cjk \
+        fonts-noto-color-emoji \
+        fonts-roboto \
+        fonts-thai-tlwg \
+        fonts-wqy-zenhei \
+        fonts-open-sans \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*; \
     fi
@@ -71,7 +90,7 @@ RUN if [ "$USE_BROWSER" = "chromium" ]; then \
 # Install Chrome
 # Available versions:
 # https://www.ubuntuupdates.org/package/google_chrome/stable/main/base/google-chrome-stable
-ARG CHROME_VERSION="126.0.6478.182-1"
+ARG CHROME_VERSION="130.0.6723.69-1"
 RUN if [ "$USE_BROWSER" = "chrome" ]; then \
         wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
           && apt-get update \

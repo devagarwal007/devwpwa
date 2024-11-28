@@ -4,9 +4,14 @@ import {
   ApiProperty,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { GetChatMessagesQuery } from '@waha/structures/chats.dto';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-import { SessionBaseRequest, SessionQuery } from './base.dto';
+import {
+  SessionBaseRequest,
+  SessionQuery,
+  WHATSAPP_DEFAULT_SESSION_NAME,
+} from './base.dto';
 import {
   BinaryFile,
   RemoteFile,
@@ -21,6 +26,10 @@ import { ChatIdProperty, ReplyToProperty } from './properties.dto';
  * Queries
  */
 export class CheckNumberStatusQuery extends SessionQuery {
+  @ApiProperty({
+    description: 'The phone number to check',
+    example: '1213213213',
+  })
   @IsString()
   phone: string;
 }
@@ -38,16 +47,14 @@ export class ChatQuery extends SessionQuery {
   chatId: string;
 }
 
-export class GetMessageQuery extends ChatQuery {
-  @IsNumber()
-  limit: number;
+export class GetMessageQuery extends GetChatMessagesQuery {
+  @IsNotEmpty()
+  @IsString()
+  session: string = WHATSAPP_DEFAULT_SESSION_NAME;
 
-  @ApiProperty({
-    example: true,
-    required: false,
-    description: 'Download media for messages',
-  })
-  downloadMedia: true;
+  @ChatIdProperty()
+  @IsString()
+  chatId: string;
 }
 
 export class GetPresenceQuery extends ChatQuery {}
@@ -142,23 +149,26 @@ export class MessageContactVcardRequest extends ChatRequest {
 }
 
 export class MessageTextRequest extends ChatRequest {
-  text = 'Hi there!';
+  text: string = 'Hi there!';
+
   @ApiHideProperty()
   mentions?: string[];
 
   @ReplyToProperty()
   reply_to?: string;
+
+  linkPreview?: boolean = true;
 }
 
 export class EditMessageRequest {
-  text = 'Hello, world!';
+  text: string = 'Hello, world!';
 
   @ApiHideProperty()
   mentions?: string[];
 }
 
 export class MessageReplyRequest extends MessageTextRequest {
-  text = 'Reply text';
+  text: string = 'Reply text';
 }
 
 export class MessageLocationRequest extends ChatRequest {
@@ -193,14 +203,14 @@ export class FileRequest extends ChatRequest {
 }
 
 export class MessageImageRequest extends FileRequest {
-  caption: string;
+  caption?: string;
 
   @ReplyToProperty()
   reply_to?: string;
 }
 
 export class MessageFileRequest extends FileRequest {
-  caption: string;
+  caption?: string;
 
   @ReplyToProperty()
   reply_to?: string;
@@ -230,7 +240,7 @@ export class MessageVideoRequest extends ChatRequest {
   })
   file: VideoRemoteFile | VideoBinaryFile;
 
-  caption: string = 'Just watch at this!';
+  caption?: string = 'Just watch at this!';
 
   @ApiProperty({
     description:
@@ -238,11 +248,24 @@ export class MessageVideoRequest extends ChatRequest {
     example: null,
   })
   reply_to?: string;
+
+  @ApiProperty({
+    description: 'Send as video note (aka instant or round video).',
+    example: false,
+  })
+  asNote?: boolean;
 }
 
 export class MessageLinkPreviewRequest extends ChatRequest {
   url: string;
   title: string;
+}
+
+export class MessageForwardRequest extends ChatRequest {
+  @ApiProperty({
+    example: 'false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA',
+  })
+  messageId: string;
 }
 
 export class MessageReactionRequest extends MessageRequest {

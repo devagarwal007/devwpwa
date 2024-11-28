@@ -29,6 +29,13 @@ process.on('unhandledRejection', (reason, promise) => {
   // @ts-ignore
   logger.error(reason.stack);
 });
+process.on('SIGINT', () => {
+  logger.info('SIGINT received');
+});
+
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received');
+});
 
 async function loadModules(): Promise<
   [typeof AppModuleCore, typeof SwaggerConfiguratorCore]
@@ -51,18 +58,12 @@ async function loadModules(): Promise<
   return [AppModulePlus, SwaggerConfiguratorPlus];
 }
 
-let app = undefined;
-
-export function getApp() {
-  return app;
-}
-
 async function bootstrap() {
   const version = getWAHAVersion();
   logger.info(`WAHA (WhatsApp HTTP API) - Running ${version} version...`);
   const [AppModule, SwaggerModule] = await loadModules();
   const httpsOptions = AppModule.getHttpsOptions(logger);
-  app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create(AppModule, {
     logger: getNestJSLogLevels(),
     httpsOptions: httpsOptions,
     bufferLogs: true,
@@ -73,7 +74,6 @@ async function bootstrap() {
   // https://github.com/iamolegga/nestjs-pino?tab=readme-ov-file#expose-stack-trace-and-error-class-in-err-property
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
-  app.enableShutdownHooks();
   app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors();
   // Ideally, we should apply it globally.
@@ -90,6 +90,7 @@ async function bootstrap() {
   swaggerConfigurator.configure(WAHA_WEBHOOKS);
 
   AppModule.appReady(app, logger);
+  app.enableShutdownHooks();
   const config = app.get(WhatsappConfigService);
   await app.listen(config.port);
   logger.info(`WhatsApp HTTP API is running on: ${await app.getUrl()}`);
@@ -98,5 +99,7 @@ async function bootstrap() {
 
 bootstrap().catch((error) => {
   logger.error(error, `Failed to start WAHA: ${error}`);
+  // @ts-ignore
+  logger.error(error.stack);
   process.exit(1);
 });

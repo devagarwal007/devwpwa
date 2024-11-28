@@ -1,8 +1,16 @@
 import { Contact } from '@adiwajshing/baileys';
+import { KnexPaginator } from '@waha/utils/Paginator';
 
 import { IContactRepository } from '../IContactRepository';
-import { Sqlite3KVRepository } from './Sqlite3KVRepository';
+import { NOWEBSqlite3KVRepository } from './NOWEBSqlite3KVRepository';
+
+class ContactPaginator extends KnexPaginator {
+  indexes = ['id'];
+}
 
 export class Sqlite3ContactRepository
-  extends Sqlite3KVRepository<Contact>
-  implements IContactRepository {}
+  extends NOWEBSqlite3KVRepository<Contact>
+  implements IContactRepository
+{
+  protected Paginator = ContactPaginator;
+}

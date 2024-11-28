@@ -16,6 +16,8 @@ import {
 } from '@adiwajshing/baileys/lib/Types/LabelAssociation';
 import { ILabelAssociationRepository } from '@waha/core/engines/noweb/store/ILabelAssociationsRepository';
 import { ILabelsRepository } from '@waha/core/engines/noweb/store/ILabelsRepository';
+import { GetChatMessagesFilter } from '@waha/structures/chats.dto';
+import { PaginationParams, SortOrder } from '@waha/structures/pagination.dto';
 import { toNumber } from 'lodash';
 import { Logger } from 'pino';
 
@@ -322,20 +324,32 @@ export class NowebPersistentStore implements INowebStore {
     return proto.WebMessageInfo.fromObject(data);
   }
 
-  getMessagesByJid(chatId: string, limit: number) {
-    return this.messagesRepo.getAllByJid(toJID(chatId), toNumber(limit));
+  getMessagesByJid(
+    chatId: string,
+    filter: GetChatMessagesFilter,
+    pagination: PaginationParams,
+  ): Promise<any> {
+    pagination.sortBy = 'messageTimestamp';
+    pagination.sortOrder = SortOrder.DESC;
+    return this.messagesRepo.getAllByJid(chatId, filter, pagination);
   }
 
-  getChats(limit?: number, offset?: number): Promise<Chat[]> {
-    return this.chatRepo.getAllWithMessages(limit, offset);
+  getMessageById(chatId: string, messageId: string): Promise<any> {
+    return this.messagesRepo.getByJidById(chatId, messageId);
+  }
+
+  getChats(pagination: PaginationParams): Promise<Chat[]> {
+    pagination.sortBy ||= 'conversationTimestamp';
+    pagination.sortOrder ||= SortOrder.DESC;
+    return this.chatRepo.getAllWithMessages(pagination);
   }
 
   getContactById(jid) {
     return this.contactRepo.getById(jid);
   }
 
-  getContacts() {
-    return this.contactRepo.getAll();
+  getContacts(pagination: PaginationParams) {
+    return this.contactRepo.getAll(pagination);
   }
 
   getLabels(): Promise<Label[]> {

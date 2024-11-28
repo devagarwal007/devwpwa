@@ -3,70 +3,88 @@ import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import {
   BinaryFile,
   RemoteFile,
+  VideoBinaryFile,
+  VideoRemoteFile,
   VoiceBinaryFile,
   VoiceRemoteFile,
 } from './files.dto';
 
 export const BROADCAST_ID = 'status@broadcast';
 
-class StatusRequest {
-  @ApiProperty({
-    description:
-      'it is always necessary to inform the list of contacts that will have access to the posted status',
-    example: ['55xxxxxxxxxxx@c.us'],
-  })
-  contacts = ['55xxxxxxxxxxx@c.us'];
+const ContactsProperty = ApiProperty({
+  description: 'Contact list to send the status to.',
+  example: null,
+  required: false,
+});
+
+export interface StatusRequest {
+  contacts?: string[];
 }
 
-export class TextStatus extends StatusRequest {
-  text = 'Have a look! https://github.com/';
-  backgroundColor = '#38b42f';
-  font = 1;
+export class TextStatus {
+  text: string = 'Have a look! https://github.com/';
+  backgroundColor: string = '#38b42f';
+  font: number = 1;
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
-@ApiExtraModels(BinaryFile, RemoteFile)
-export class ImageStatus extends StatusRequest {
+@ApiExtraModels(RemoteFile, BinaryFile)
+export class ImageStatus {
   @ApiProperty({
     oneOf: [
-      { $ref: getSchemaPath(BinaryFile) },
       { $ref: getSchemaPath(RemoteFile) },
+      { $ref: getSchemaPath(BinaryFile) },
     ],
   })
-  file: BinaryFile | RemoteFile;
+  file: RemoteFile | BinaryFile;
 
-  caption: string;
+  caption?: string;
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
-@ApiExtraModels(VoiceBinaryFile, VoiceRemoteFile)
-export class VoiceStatus extends StatusRequest {
+@ApiExtraModels(VoiceRemoteFile, VoiceBinaryFile)
+export class VoiceStatus {
   @ApiProperty({
     oneOf: [
-      { $ref: getSchemaPath(VoiceBinaryFile) },
       { $ref: getSchemaPath(VoiceRemoteFile) },
+      { $ref: getSchemaPath(VoiceBinaryFile) },
     ],
   })
-  file: VoiceBinaryFile | VoiceRemoteFile;
+  file: VoiceRemoteFile | VoiceBinaryFile;
 
-  backgroundColor = '#38b42f';
+  backgroundColor: string = '#38b42f';
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
-@ApiExtraModels(BinaryFile, RemoteFile)
-export class VideoStatus extends StatusRequest {
+@ApiExtraModels(VideoRemoteFile, VideoBinaryFile)
+export class VideoStatus {
   @ApiProperty({
     oneOf: [
-      { $ref: getSchemaPath(BinaryFile) },
-      { $ref: getSchemaPath(RemoteFile) },
+      { $ref: getSchemaPath(VideoRemoteFile) },
+      { $ref: getSchemaPath(VideoBinaryFile) },
     ],
   })
-  file: BinaryFile | RemoteFile;
+  file: VideoRemoteFile | VideoBinaryFile;
 
-  caption: string;
+  caption?: string;
+
+  @ContactsProperty
+  contacts?: string[];
 }
 
-export class DeleteStatusRequest extends StatusRequest {
+export class DeleteStatusRequest {
   @ApiProperty({
     description: 'status message id',
     example: 'AAAAAAAAAAAAAAAAA',
   })
   id: string;
+
+  @ContactsProperty
+  contacts?: string[];
 }

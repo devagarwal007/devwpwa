@@ -1,6 +1,9 @@
+.env
+*.heapsnapshot
 .yarn
 example.ts
 .*sessions
+sessions
 .secrets
 .minio
 .media
@@ -14,6 +17,7 @@ test.js
 .wwebjs_cache
 src/dashboard
 .eslintcache
+__pycache__
 
 # compiled output
 /dist
