@@ -5,10 +5,15 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=admin@offz.in"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "80:80"
+      - "443:443"
       - "8080:8080"
     volumes:
+      - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock
   waha:
     restart: always
@@ -18,7 +23,10 @@ services:
     # WAHA Core
     # image: devlikeapro/waha:latest
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.waha.rule=Host(`hdah.offrz.in`)"
+      - "traefik.http.routers.waha.entrypoints=websecure"
+      - "traefik.http.routers.waha.tls.certresolver=myresolver"
 
     expose:
       - 3000
@@ -70,3 +78,4 @@ volumes:
   # NOTE: Only if you're using MongoDB
   mongodb_data: {}
   minio_data: {}
+  letsencrypt:
