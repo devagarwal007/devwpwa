@@ -17,6 +17,8 @@ services:
     image: devagarwal77/devwpwa:latest
     # WAHA Core
     # image: devlikeapro/waha:latest
+    labels:
+      - "traefik.http.routers.waha.rule=Host(`srv656739.hstgr.cloud`)"
 
     expose:
       - 3000
