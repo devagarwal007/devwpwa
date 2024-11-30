@@ -5,11 +5,7 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
     ports:
-      - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
@@ -24,7 +20,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.waha.rule=Host(`hdah.offrz.in`)"
-      - "traefik.http.routers.waha.entrypoints=websecure"
 
     expose:
       - 3000
