@@ -1,5 +1,15 @@
 # https://waha.devlike.pro/docs/how-to/install/
 services:
+  reverse-proxy:
+    image: traefik:v3.1
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   waha:
     restart: always
     # https://waha.devlike.pro/docs/how-to/engines/#docker-images
@@ -9,7 +19,7 @@ services:
     # image: devlikeapro/waha:latest
 
     ports:
-      - '127.0.0.1:3000:3000/tcp'
+      - '8080:3000/tcp'
 
     volumes:
       # Store sessions in the .sessions folder (comment it if you're using MongoDB)
